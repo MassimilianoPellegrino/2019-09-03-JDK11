@@ -6,6 +6,9 @@ package it.polito.tdp.food;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import org.jgrapht.graph.DefaultWeightedEdge;
+
 import it.polito.tdp.food.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -40,7 +43,7 @@ public class FoodController {
     private Button btnCammino; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxPorzioni"
-    private ComboBox<?> boxPorzioni; // Value injected by FXMLLoader
+    private ComboBox<String> boxPorzioni; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
@@ -49,19 +52,55 @@ public class FoodController {
     void doCammino(ActionEvent event) {
     	txtResult.clear();
     	txtResult.appendText("Cerco cammino peso massimo...");
+    	String s;
+    	int n;
+    	try {
+    		s = boxPorzioni.getValue();
+    		n = Integer.parseInt(txtPassi.getText());
+    		for(String st: model.getCammino(s, n)) {
+    			this.txtResult.appendText("\n"+st);
+    		}
+    		txtResult.appendText("\nPeso: "+model.getBestW());
+    		
+    	}catch(NullPointerException e){
+    		txtResult.setText("Selezionare un tipo di porzione");
+    	}catch(NumberFormatException e) {
+    		this.txtResult.appendText("Inserire un numero");
+    	}
     }
 
     @FXML
     void doCorrelate(ActionEvent event) {
     	txtResult.clear();
     	txtResult.appendText("Cerco porzioni correlate...");
+    	String s;
+    	try {
+    		s = boxPorzioni.getValue();
+    		
+    		for(DefaultWeightedEdge edge: model.getAdiacenti(s))
+    			txtResult.appendText("\n"+edge+" "+model.getGrafo().getEdgeWeight(edge));
+    		
+    		
+    	}catch(NullPointerException e){
+    		txtResult.setText("Selezionare un tipo di porzione");
+    	}
     	
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
+    	boxPorzioni.getItems().clear();
     	txtResult.appendText("Creazione grafo...");
+    	double c;
+    	try {
+    		c = Double.parseDouble(this.txtCalorie.getText());
+    		model.creaGrafo(c);
+    		txtResult.appendText("\nGrafico creato, con "+model.getGrafo().vertexSet().size()+" vertici e "+model.getGrafo().edgeSet().size()+" archi");
+    		this.boxPorzioni.getItems().addAll(model.getGrafo().vertexSet());
+    	}catch(NumberFormatException e) {
+    		this.txtResult.appendText("Inserire un numero");
+    	}
     	
     }
 
